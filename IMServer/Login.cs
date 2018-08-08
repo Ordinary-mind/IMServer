@@ -16,7 +16,7 @@ namespace IMServer
         MySqlConnection connection = null;
         MySqlCommand command = null;
         MySqlDataReader reader = null;
-        String connnectStr = "server=127.0.0.1;port=3306;user=root;password=12345678; database=network;SslMode = none;";
+        String connnectStr = "server=127.0.0.1;port=3306;user=root;password=lqn.091023; database=network;SslMode = none;";
         String sql = null;
         UserAccount account = null;
         public Login()
@@ -43,18 +43,21 @@ namespace IMServer
             {
                 try
                 {
-                    sql = "select * from useraccount where user_name='" + userName + "',password='"+password+"'";
+                    sql = "select * from useraccount where user_name='" + userName + "' and password='"+password+"'";
+                    Console.WriteLine(sql);
                     connection = new MySqlConnection(connnectStr);
                     connection.Open();
                     command = new MySqlCommand(sql, connection);
                     MySqlDataReader reader = command.ExecuteReader();
-                    if (reader.HasRows)
+                    if (reader.Read())
                     {
+                        account = new UserAccount();
                         account.UserId = reader.GetInt32("user_id");
                         account.NickName = reader.GetString("nick_name");
                         connection.Close();
                         this.Hide();
                         Form1 form1 = new Form1(account);
+                        form1.Show();
                     }
                     else
                     {
@@ -69,4 +72,3 @@ namespace IMServer
             }
         }
     }
-}

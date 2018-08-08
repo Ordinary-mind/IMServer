@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace IMServer
 {
-    class UserAccount
+    public class UserAccount
     {
         private int userId;
         private String nickName;

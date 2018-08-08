@@ -26,6 +26,7 @@ namespace IMServer
         }
         public Form1(UserAccount account)
         {
+            userAccount = account;
             InitializeComponent();
         }
 

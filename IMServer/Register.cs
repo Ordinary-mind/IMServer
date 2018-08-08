@@ -18,7 +18,7 @@ namespace IMServer
         MySqlConnection connection = null;
         MySqlCommand command = null;
         MySqlDataReader reader = null;
-        String connnectStr = "server=127.0.0.1;port=3306;user=root;password=12345678; database=network;SslMode = none;";
+        String connnectStr = "server=127.0.0.1;port=3306;user=root;password=lqn.091023; database=network;SslMode = none;";
         String sql = null;
         public Register()
         {
@@ -83,7 +83,7 @@ namespace IMServer
                 }
                 catch (Exception ex)
                 {
-
+                    MessageBox.Show(ex.Message);
                 }
             }
         }
