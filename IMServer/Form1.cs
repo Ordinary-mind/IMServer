@@ -14,11 +14,17 @@ namespace IMServer
 {
     public partial class Form1 : Form
     {
+        UserAccount userAccount;
         private TcpListener listener = null;
         List<AddressInformation> info = new List<AddressInformation>();
         public delegate void appendTextDelegate(String str);
         public int flag = 1;
+
         public Form1()
+        {
+
+        }
+        public Form1(UserAccount account)
         {
             InitializeComponent();
         }
