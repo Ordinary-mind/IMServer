@@ -92,22 +92,29 @@ namespace IMServer
         {
             TCPClientState state = (TCPClientState)ar.AsyncState;
             NetworkStream stream = state.NetworkStream;
-            int recv = 0;
-            try
+            if (state != null)
             {
-                recv = stream.EndRead(ar);
-            }
-            catch
-            {
-                recv = 0;
-            }
-            byte[] buff = new byte[recv];
-            Buffer.BlockCopy(state.Buffer, 0, buff, 0, recv);
-            //触发数据收到事件
-            this.appendTextInvoke("收←" + Encoding.UTF8.GetString(buff) + "\n");
+                int recv = 0;
+                try
+                {
+                    recv = stream.EndRead(ar);
+                    byte[] buff = new byte[recv];
+                    Buffer.BlockCopy(state.Buffer, 0, buff, 0, recv);
+                    this.appendTextInvoke("收←" + Encoding.UTF8.GetString(buff) + "\n");
+                }
+                catch
+                {
+                    recv = 0;
+                }
 
-            // continue listening for tcp datagram packets
-            stream.BeginRead(state.Buffer, 0, state.Buffer.Length, HandleDataReceived, state);
+                try
+                {
+                    stream.BeginRead(state.Buffer, 0, state.Buffer.Length, HandleDataReceived, state);
+                }catch(Exception ex)
+                {
+                    MessageBox.Show(ex.Message);
+                }
+            }
         }
 
         private void appendTextInvoke(string str)
