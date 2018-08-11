@@ -12,6 +12,8 @@ namespace IMServer
         public TcpClient tcpClient { set; get; }
         public String name { set; get; }
         public int id { set; get; }
+
+        public String ipAddress { get; set; }
         
     }
 }

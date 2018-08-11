@@ -16,18 +16,17 @@ namespace IMServer
     {
         UserAccount userAccount;
         private TcpListener listener = null;
-        List<AddressInformation> info = new List<AddressInformation>();
+        List<TCPClientState> clientList = new List<TCPClientState>();
         public delegate void appendTextDelegate(String str);
         public int flag = 1;
 
         public Form1()
         {
-
+            InitializeComponent();
         }
         public Form1(UserAccount account)
         {
             userAccount = account;
-            InitializeComponent();
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -64,7 +63,6 @@ namespace IMServer
                 listener = new TcpListener(iPEndPoint);
                 listener.Start();
                 listener.BeginAcceptTcpClient(new AsyncCallback(acceptClientCallback), listener);
-                Console.WriteLine("IP:" + serverIP + ",port:" + port);
             }catch(Exception ex)
             {
                 MessageBox.Show(ex.Message);
@@ -77,18 +75,10 @@ namespace IMServer
             if (lstn != null)
             {
                 TcpClient client = lstn.EndAcceptTcpClient(ar);
-                AddressInformation information = new AddressInformation();
-                String name = "客户端" + flag;
-                information.tcpClient = client;
-                information.name = name;
-                flag++;
-                info.Add(information);
-                if (cbClientList.Items.IndexOf(name) == -1)
-                {
-                    this.appendTextToCombox(name);
-                }
+                Console.WriteLine("新的客户端加入：" + client.Client.RemoteEndPoint.ToString());
                 byte[] buffer = new byte[client.ReceiveBufferSize];
                 TCPClientState state = new TCPClientState(client, buffer);
+                clientList.Add(state);
                 NetworkStream stream = state.NetworkStream;
                 stream.BeginRead(state.Buffer, 0, state.Buffer.Length, HandleDataReceived, state);
                 listener.BeginAcceptTcpClient(new AsyncCallback(acceptClientCallback), ar.AsyncState);
@@ -107,11 +97,29 @@ namespace IMServer
                     recv = stream.EndRead(ar);
                     byte[] buff = new byte[recv];
                     Buffer.BlockCopy(state.Buffer, 0, buff, 0, recv);
-                    this.appendTextInvoke("收←" + Encoding.UTF8.GetString(buff) + "\n");
+                    String str = Encoding.UTF8.GetString(buff);
+                    String first = str.Substring(0, 1);
+                    String last = str.Substring(str.Length - 1, 1);
+                    if (first.Equals("@") && last.Equals("@")) 
+                    {
+                        string final = str.Substring(1, str.Length - 2);
+                        string[] addInfo= final.Split(',');
+                        int userId = Int32.Parse(addInfo[0]);
+                        String userName = addInfo[1];
+                        state.userId = userId;
+                        state.clientName = userName;
+                        Console.WriteLine("userId:"+ userId+ ",userName:"+userName);
+                        appendTextToCombox(userName);
+                    }
+                    else
+                    {
+                        this.appendTextInvoke(state.clientName+" 发来：" + Encoding.UTF8.GetString(buff) + "\n");
+                    }
                 }
-                catch
+                catch(Exception ex)
                 {
                     recv = 0;
+                    Console.WriteLine(ex.Message);
                 }
 
                 try
@@ -186,22 +194,31 @@ namespace IMServer
 
         private void btnSendData_Click(object sender, EventArgs e)
         {
-            String nowClient = this.cbClientList.Text;
-            if (String.IsNullOrEmpty(nowClient))
+            String nowClientName = this.cbClientList.Text;
+            if (String.IsNullOrEmpty(nowClientName))
             {
                 MessageBox.Show("请先选择发送对象！");
             }
             else
             {
-                int num = this.cbClientList.Items.IndexOf(nowClient);
-                TcpClient client = info[num].tcpClient;
+                TCPClientState nowClientState = null;
+                foreach (TCPClientState s in clientList)
+                {
+                    if (s.clientName.Equals(nowClientName))
+                    {
+                        nowClientState = s;
+                        Console.WriteLine("即将发送给："+s.clientName);
+                        break;
+                    }
+                }
+                    
                 byte[] bytes;
                 String msg = this.tbSendData.Text;
                 try
                 {
                     bytes = Encoding.UTF8.GetBytes(msg);
-                    Send(client, bytes);
-                    tbChatContent.AppendText("发→" + msg + "\n");
+                    Send(nowClientState.TcpClient, bytes);
+                    tbChatContent.AppendText("发→"+ nowClientState.clientName + "：" + msg + "\n");
                 }
                 catch (Exception ex)
                 {
@@ -226,6 +243,10 @@ namespace IMServer
         /// 获取缓冲区
         /// </summary>
         public byte[] Buffer { get; private set; }
+
+        public string clientName { get; set; }
+
+        public int userId { get; set; }
 
         /// <summary>
         /// 获取网络流
