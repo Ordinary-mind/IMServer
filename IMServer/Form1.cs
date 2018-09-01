@@ -61,7 +61,7 @@ namespace IMServer
                 iPAddress = IPAddress.Parse(serverIP);
                 iPEndPoint = new IPEndPoint(iPAddress, port);
                 listener = new TcpListener(iPEndPoint);
-                this.toolStripStatusLabel2.Text = "服务器开始监听端口";
+                tbLog.AppendText(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss 开始监听本地9000端口，等待连接！\n"));
                 listener.Start();
                 listener.BeginAcceptTcpClient(new AsyncCallback(acceptClientCallback), listener);
             }catch(Exception ex)
@@ -76,7 +76,9 @@ namespace IMServer
             if (lstn != null)
             {
                 TcpClient client = lstn.EndAcceptTcpClient(ar);
-                Console.WriteLine("新的客户端加入：" + client.Client.RemoteEndPoint.ToString());
+                this.Invoke((EventHandler)delegate{
+                    tbLog.AppendText(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss "+client.Client.RemoteEndPoint+"加入连接！\n"));
+                });
                 byte[] buffer = new byte[client.ReceiveBufferSize];
                 TCPClientState state = new TCPClientState(client, buffer);
                 clientList.Add(state);
@@ -105,11 +107,8 @@ namespace IMServer
                     {
                         case "@1@":
                             string[] addInfo = content.Split(',');
-                            int userId = Int32.Parse(addInfo[0]);
-                            String userName = addInfo[1];
-                            state.userId = userId;
-                            state.clientName = userName;
-                            appendTextToCombox(userName);
+                            string userName = addInfo[0];
+                            string password = addInfo[1];
                             break;
                         case "@2@":
                             this.Invoke(new MethodInvoker(() => {

@@ -42,12 +42,10 @@
             this.btnSendData = new System.Windows.Forms.Button();
             this.tbSendData = new System.Windows.Forms.TextBox();
             this.tbChatContent = new System.Windows.Forms.TextBox();
-            this.statusStrip = new System.Windows.Forms.StatusStrip();
-            this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
-            this.toolStripStatusLabel2 = new System.Windows.Forms.ToolStripStatusLabel();
+            this.tbLog = new System.Windows.Forms.TextBox();
+            this.lbLog = new System.Windows.Forms.Label();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
-            this.statusStrip.SuspendLayout();
             this.SuspendLayout();
             // 
             // tbServerIP
@@ -134,6 +132,8 @@
             // 
             // groupBox2
             // 
+            this.groupBox2.Controls.Add(this.lbLog);
+            this.groupBox2.Controls.Add(this.tbLog);
             this.groupBox2.Controls.Add(this.label1);
             this.groupBox2.Controls.Add(this.cbClientList);
             this.groupBox2.Controls.Add(this.btnSendData);
@@ -167,7 +167,7 @@
             // 
             // btnSendData
             // 
-            this.btnSendData.Location = new System.Drawing.Point(311, 271);
+            this.btnSendData.Location = new System.Drawing.Point(348, 201);
             this.btnSendData.Name = "btnSendData";
             this.btnSendData.Size = new System.Drawing.Size(53, 23);
             this.btnSendData.TabIndex = 9;
@@ -177,9 +177,9 @@
             // 
             // tbSendData
             // 
-            this.tbSendData.Location = new System.Drawing.Point(65, 273);
+            this.tbSendData.Location = new System.Drawing.Point(20, 201);
             this.tbSendData.Name = "tbSendData";
-            this.tbSendData.Size = new System.Drawing.Size(240, 21);
+            this.tbSendData.Size = new System.Drawing.Size(322, 21);
             this.tbSendData.TabIndex = 8;
             this.tbSendData.Text = " ";
             // 
@@ -188,38 +188,31 @@
             this.tbChatContent.Location = new System.Drawing.Point(20, 45);
             this.tbChatContent.Multiline = true;
             this.tbChatContent.Name = "tbChatContent";
-            this.tbChatContent.Size = new System.Drawing.Size(381, 220);
+            this.tbChatContent.Size = new System.Drawing.Size(381, 140);
             this.tbChatContent.TabIndex = 7;
             // 
-            // statusStrip
+            // tbLog
             // 
-            this.statusStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolStripStatusLabel1,
-            this.toolStripStatusLabel2});
-            this.statusStrip.Location = new System.Drawing.Point(0, 474);
-            this.statusStrip.Name = "statusStrip";
-            this.statusStrip.Size = new System.Drawing.Size(609, 22);
-            this.statusStrip.TabIndex = 8;
-            this.statusStrip.Text = "statusStrip";
+            this.tbLog.Location = new System.Drawing.Point(53, 246);
+            this.tbLog.Multiline = true;
+            this.tbLog.Name = "tbLog";
+            this.tbLog.Size = new System.Drawing.Size(471, 89);
+            this.tbLog.TabIndex = 12;
             // 
-            // toolStripStatusLabel1
+            // lbLog
             // 
-            this.toolStripStatusLabel1.Name = "toolStripStatusLabel1";
-            this.toolStripStatusLabel1.Size = new System.Drawing.Size(44, 17);
-            this.toolStripStatusLabel1.Text = "状态栏";
-            // 
-            // toolStripStatusLabel2
-            // 
-            this.toolStripStatusLabel2.Name = "toolStripStatusLabel2";
-            this.toolStripStatusLabel2.Size = new System.Drawing.Size(32, 17);
-            this.toolStripStatusLabel2.Text = "信息";
+            this.lbLog.AutoSize = true;
+            this.lbLog.Location = new System.Drawing.Point(18, 249);
+            this.lbLog.Name = "lbLog";
+            this.lbLog.Size = new System.Drawing.Size(29, 12);
+            this.lbLog.TabIndex = 13;
+            this.lbLog.Text = "日志";
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(609, 496);
-            this.Controls.Add(this.statusStrip);
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.groupBox1);
             this.Name = "Form1";
@@ -230,10 +223,7 @@
             this.groupBox1.PerformLayout();
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
-            this.statusStrip.ResumeLayout(false);
-            this.statusStrip.PerformLayout();
             this.ResumeLayout(false);
-            this.PerformLayout();
 
         }
 
@@ -253,9 +243,8 @@
         private System.Windows.Forms.Button btnStopListen;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.ComboBox cbClientList;
-        private System.Windows.Forms.StatusStrip statusStrip;
-        private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel1;
-        private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel2;
+        private System.Windows.Forms.Label lbLog;
+        private System.Windows.Forms.TextBox tbLog;
     }
 }
 
