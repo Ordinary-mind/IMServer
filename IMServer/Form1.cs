@@ -61,6 +61,7 @@ namespace IMServer
                 iPAddress = IPAddress.Parse(serverIP);
                 iPEndPoint = new IPEndPoint(iPAddress, port);
                 listener = new TcpListener(iPEndPoint);
+                this.toolStripStatusLabel2.Text = "服务器开始监听端口";
                 listener.Start();
                 listener.BeginAcceptTcpClient(new AsyncCallback(acceptClientCallback), listener);
             }catch(Exception ex)
@@ -98,28 +99,42 @@ namespace IMServer
                     byte[] buff = new byte[recv];
                     Buffer.BlockCopy(state.Buffer, 0, buff, 0, recv);
                     String str = Encoding.UTF8.GetString(buff);
-                    String first = str.Substring(0, 1);
-                    String last = str.Substring(str.Length - 1, 1);
-                    if (first.Equals("@") && last.Equals("@")) 
+                    string instruction = str.Substring(0, 3);
+                    string content = str.Substring(3);
+                    switch (instruction)
                     {
-                        string final = str.Substring(1, str.Length - 2);
-                        string[] addInfo= final.Split(',');
-                        int userId = Int32.Parse(addInfo[0]);
-                        String userName = addInfo[1];
-                        state.userId = userId;
-                        state.clientName = userName;
-                        Console.WriteLine("userId:"+ userId+ ",userName:"+userName);
-                        appendTextToCombox(userName);
-                    }
-                    else
-                    {
-                        this.appendTextInvoke(state.clientName+" 发来：" + Encoding.UTF8.GetString(buff) + "\n");
+                        case "@1@":
+                            string[] addInfo = content.Split(',');
+                            int userId = Int32.Parse(addInfo[0]);
+                            String userName = addInfo[1];
+                            state.userId = userId;
+                            state.clientName = userName;
+                            appendTextToCombox(userName);
+                            break;
+                        case "@2@":
+                            this.Invoke(new MethodInvoker(() => {
+                                this.tbChatContent.AppendText(state.clientName + " 发来：" + content + "\n");
+                            }));
+                            break;
+                        default:
+                            break;
                     }
                 }
                 catch(Exception ex)
                 {
                     recv = 0;
-                    Console.WriteLine(ex.Message);
+                    stream.Close();
+                    state.TcpClient.Close();
+                    clientList.Remove(state);
+                    this.Invoke(new MethodInvoker(() => {
+                        this.cbClientList.Items.Clear();
+                        foreach (TCPClientState s in clientList)
+                        {
+                            this.cbClientList.Items.Add(s.clientName);
+                        }
+                    }));
+                    return;
+                    //MessageBox.Show(ex.Message); 
                 }
 
                 try
