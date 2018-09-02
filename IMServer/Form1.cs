@@ -1,4 +1,7 @@
-﻿using System;
+﻿using IMClient;
+using IMServer.Entity;
+using MySql.Data.MySqlClient;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -23,10 +26,6 @@ namespace IMServer
         public Form1()
         {
             InitializeComponent();
-        }
-        public Form1(UserAccount account)
-        {
-            userAccount = account;
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -77,10 +76,12 @@ namespace IMServer
             {
                 TcpClient client = lstn.EndAcceptTcpClient(ar);
                 this.Invoke((EventHandler)delegate{
-                    tbLog.AppendText(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss "+client.Client.RemoteEndPoint+"加入连接！\n"));
+                    tbLog.AppendText(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss "+client.Client.RemoteEndPoint+" 加入连接！\n"));
                 });
                 byte[] buffer = new byte[client.ReceiveBufferSize];
                 TCPClientState state = new TCPClientState(client, buffer);
+                state.ClientAddr = client.Client.RemoteEndPoint.ToString();
+                state.clientName = "default";
                 clientList.Add(state);
                 NetworkStream stream = state.NetworkStream;
                 stream.BeginRead(state.Buffer, 0, state.Buffer.Length, HandleDataReceived, state);
@@ -109,6 +110,21 @@ namespace IMServer
                             string[] addInfo = content.Split(',');
                             string userName = addInfo[0];
                             string password = addInfo[1];
+                            string sql = "SELECT * FROM useraccount WHERE UserName=@UserName AND Password=@Password";
+                            List<UserAccount> accounts = DBHelper.QueryToList<UserAccount>(sql, new MySqlParameter[] { new MySqlParameter("UserName",userName),new MySqlParameter("Password",password)});
+                            if (accounts.Count>0)
+                            {
+                                state.userId = accounts[0].UserId;
+                                state.clientName = accounts[0].NickName;
+                                this.Invoke((EventHandler)delegate {
+                                    cbClientList.Items.Add(accounts[0].NickName);
+                                });
+                                Send(state.TcpClient, Encoding.UTF8.GetBytes("@1@1"));
+                            }
+                            else
+                            {
+                                Send(state.TcpClient, Encoding.UTF8.GetBytes("@1@0"));
+                            }
                             break;
                         case "@2@":
                             this.Invoke(new MethodInvoker(() => {
@@ -126,6 +142,7 @@ namespace IMServer
                     state.TcpClient.Close();
                     clientList.Remove(state);
                     this.Invoke(new MethodInvoker(() => {
+                        this.tbLog.AppendText(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss " + state.ClientAddr+" 断开连接！\n"));
                         this.cbClientList.Items.Clear();
                         foreach (TCPClientState s in clientList)
                         {
@@ -143,33 +160,6 @@ namespace IMServer
                 {
                     MessageBox.Show(ex.Message);
                 }
-            }
-        }
-
-        private void appendTextInvoke(string str)
-        {
-            appendTextDelegate myDelegate = new appendTextDelegate(appendTextInvoke);
-            if (this.tbChatContent.InvokeRequired)
-            {
-                this.tbChatContent.Invoke(myDelegate, str);
-            }
-            else
-            {
-                //InvokedRequired is false, so call the control directly
-                this.tbChatContent.AppendText(str);
-            }
-        }
-
-        private void appendTextToCombox(String str)
-        {
-            appendTextDelegate myDelegate = new appendTextDelegate(appendTextToCombox);
-            if (this.cbClientList.InvokeRequired)
-            {
-                this.cbClientList.Invoke(myDelegate, str);
-            }
-            else
-            {
-                this.cbClientList.Items.Add(str);
             }
         }
 
@@ -257,6 +247,7 @@ namespace IMServer
         /// 获取缓冲区
         /// </summary>
         public byte[] Buffer { get; private set; }
+        public string ClientAddr { get; set; }
 
         public string clientName { get; set; }
 
