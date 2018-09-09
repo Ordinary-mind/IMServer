@@ -1,6 +1,7 @@
 ﻿using IMClient;
 using IMServer.Entity;
 using MySql.Data.MySqlClient;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -15,7 +16,7 @@ using System.Windows.Forms;
 
 namespace IMServer
 {
-    public partial class Form1 : Form
+    public partial class IMServer : Form
     {
         UserAccount userAccount;
         private TcpListener listener = null;
@@ -23,7 +24,7 @@ namespace IMServer
         public delegate void appendTextDelegate(String str);
         public int flag = 1;
 
-        public Form1()
+        public IMServer()
         {
             InitializeComponent();
         }
@@ -60,7 +61,7 @@ namespace IMServer
                 iPAddress = IPAddress.Parse(serverIP);
                 iPEndPoint = new IPEndPoint(iPAddress, port);
                 listener = new TcpListener(iPEndPoint);
-                tbLog.AppendText(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss 开始监听本地9000端口，等待连接！\n"));
+                tbLog.AppendText(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " 开始监听本地9000端口，等待连接！\n");
                 listener.Start();
                 listener.BeginAcceptTcpClient(new AsyncCallback(acceptClientCallback), listener);
             }catch(Exception ex)
@@ -102,11 +103,11 @@ namespace IMServer
                     byte[] buff = new byte[recv];
                     Buffer.BlockCopy(state.Buffer, 0, buff, 0, recv);
                     String str = Encoding.UTF8.GetString(buff);
-                    string instruction = str.Substring(0, 3);
-                    string content = str.Substring(3);
+                    string instruction = str.Substring(0, 4);
+                    string content = str.Substring(4);
                     switch (instruction)
                     {
-                        case "@1@":
+                        case "@01@":
                             string[] addInfo = content.Split(',');
                             string userName = addInfo[0];
                             string password = addInfo[1];
@@ -119,17 +120,29 @@ namespace IMServer
                                 this.Invoke((EventHandler)delegate {
                                     cbClientList.Items.Add(accounts[0].NickName);
                                 });
-                                Send(state.TcpClient, Encoding.UTF8.GetBytes("@1@1"));
-                            }
+                                Send(state.TcpClient, Encoding.UTF8.GetBytes("@01@1"));
+                                                            }
                             else
                             {
-                                Send(state.TcpClient, Encoding.UTF8.GetBytes("@1@0"));
+                                Send(state.TcpClient, Encoding.UTF8.GetBytes("@01@0"));
                             }
                             break;
                         case "@2@":
                             this.Invoke(new MethodInvoker(() => {
                                 this.tbChatContent.AppendText(state.clientName + " 发来：" + content + "\n");
                             }));
+                            break;
+                        case "@02@":
+                            string getFriends = "SELECT * FROM useraccount WHERE UserId in (SELECT f.FriendId FROM friend f LEFT JOIN useraccount u ON f.SelfId=u.UserId WHERE u.UserId=@UserId);";
+                            List<UserAccount> friends = DBHelper.QueryToList<UserAccount>(getFriends, new MySqlParameter[] { new MySqlParameter("UserId", state.userId) });
+                            string jsonOfFriends = JsonConvert.SerializeObject(friends);
+                            Send(state.TcpClient, Encoding.UTF8.GetBytes("@02@" + jsonOfFriends));
+                            break;
+                        case "@03@":
+                            string searchByNickName = "select * from useraccount where NickName like '%"+content+"%'";
+                            List<UserAccount> userAccounts = DBHelper.QueryToList<UserAccount>(searchByNickName, new MySqlParameter[] {});
+                            string jsonOfPersons = JsonConvert.SerializeObject(userAccounts);
+                            Send(state.TcpClient, Encoding.UTF8.GetBytes("@03@" + jsonOfPersons));
                             break;
                         default:
                             break;
