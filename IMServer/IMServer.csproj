@@ -65,6 +65,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DBHelper.cs" />
+    <Compile Include="Entity\ChatRecords.cs" />
     <Compile Include="Entity\UserAccount.cs" />
     <Compile Include="IMServer.cs">
       <SubType>Form</SubType>

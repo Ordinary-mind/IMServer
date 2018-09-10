@@ -18,7 +18,6 @@ namespace IMServer
 {
     public partial class IMServer : Form
     {
-        UserAccount userAccount;
         private TcpListener listener = null;
         List<TCPClientState> clientList = new List<TCPClientState>();
         public delegate void appendTextDelegate(String str);
@@ -144,6 +143,16 @@ namespace IMServer
                             string jsonOfPersons = JsonConvert.SerializeObject(userAccounts);
                             Send(state.TcpClient, Encoding.UTF8.GetBytes("@03@" + jsonOfPersons));
                             break;
+                        case "@04@":
+                            ChatRecords record = JsonConvert.DeserializeObject<ChatRecords>(content);
+                            var res = clientList.Select(obj => obj.userId = record.ToId);
+                            if (res != null)
+                            {
+                                string addRecord = "INSERT chatrecords VALUES(@RecordId,@FromId,@ToId,@SendTime,@Content)";
+                                DBHelper.AddData(addRecord, new MySqlParameter[] { new MySqlParameter("RecordId", record.RecordId), new MySqlParameter("FromId", record.FromId)
+                                    , new MySqlParameter("ToId", record.ToId),new MySqlParameter("SendTime", record.SendTime),new MySqlParameter("Content", record.Content)});
+                            }
+                            break;
                         default:
                             break;
                     }
@@ -206,41 +215,6 @@ namespace IMServer
             else
             {
                 MessageBox.Show("服务未开启");
-            }
-        }
-
-        private void btnSendData_Click(object sender, EventArgs e)
-        {
-            String nowClientName = this.cbClientList.Text;
-            if (String.IsNullOrEmpty(nowClientName))
-            {
-                MessageBox.Show("请先选择发送对象！");
-            }
-            else
-            {
-                TCPClientState nowClientState = null;
-                foreach (TCPClientState s in clientList)
-                {
-                    if (s.clientName.Equals(nowClientName))
-                    {
-                        nowClientState = s;
-                        Console.WriteLine("即将发送给："+s.clientName);
-                        break;
-                    }
-                }
-                    
-                byte[] bytes;
-                String msg = this.tbSendData.Text;
-                try
-                {
-                    bytes = Encoding.UTF8.GetBytes(msg);
-                    Send(nowClientState.TcpClient, bytes);
-                    tbChatContent.AppendText("发→"+ nowClientState.clientName + "：" + msg + "\n");
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show(ex.Message);
-                }
             }
         }
 

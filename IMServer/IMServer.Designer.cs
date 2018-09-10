@@ -37,13 +37,11 @@
             this.btnStopListen = new System.Windows.Forms.Button();
             this.lbChatRecord = new System.Windows.Forms.Label();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.lbLog = new System.Windows.Forms.Label();
+            this.tbLog = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.cbClientList = new System.Windows.Forms.ComboBox();
-            this.btnSendData = new System.Windows.Forms.Button();
-            this.tbSendData = new System.Windows.Forms.TextBox();
             this.tbChatContent = new System.Windows.Forms.TextBox();
-            this.tbLog = new System.Windows.Forms.TextBox();
-            this.lbLog = new System.Windows.Forms.Label();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.SuspendLayout();
@@ -123,11 +121,11 @@
             // lbChatRecord
             // 
             this.lbChatRecord.AutoSize = true;
-            this.lbChatRecord.Location = new System.Drawing.Point(18, 22);
+            this.lbChatRecord.Location = new System.Drawing.Point(18, 81);
             this.lbChatRecord.Name = "lbChatRecord";
-            this.lbChatRecord.Size = new System.Drawing.Size(53, 12);
+            this.lbChatRecord.Size = new System.Drawing.Size(77, 12);
             this.lbChatRecord.TabIndex = 6;
-            this.lbChatRecord.Text = "聊天记录";
+            this.lbChatRecord.Text = "消息转发记录";
             this.lbChatRecord.Click += new System.EventHandler(this.label1_Click_1);
             // 
             // groupBox2
@@ -136,86 +134,66 @@
             this.groupBox2.Controls.Add(this.tbLog);
             this.groupBox2.Controls.Add(this.label1);
             this.groupBox2.Controls.Add(this.cbClientList);
-            this.groupBox2.Controls.Add(this.btnSendData);
-            this.groupBox2.Controls.Add(this.tbSendData);
             this.groupBox2.Controls.Add(this.tbChatContent);
             this.groupBox2.Controls.Add(this.lbChatRecord);
             this.groupBox2.Location = new System.Drawing.Point(44, 119);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(538, 354);
+            this.groupBox2.Size = new System.Drawing.Size(538, 457);
             this.groupBox2.TabIndex = 7;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "groupBox2";
             // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(416, 22);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(65, 12);
-            this.label1.TabIndex = 11;
-            this.label1.Text = "客户端列表";
-            // 
-            // cbClientList
-            // 
-            this.cbClientList.FormattingEnabled = true;
-            this.cbClientList.Location = new System.Drawing.Point(418, 45);
-            this.cbClientList.Name = "cbClientList";
-            this.cbClientList.Size = new System.Drawing.Size(106, 20);
-            this.cbClientList.TabIndex = 10;
-            this.cbClientList.SelectedIndexChanged += new System.EventHandler(this.cbClientList_SelectedIndexChanged);
-            // 
-            // btnSendData
-            // 
-            this.btnSendData.Location = new System.Drawing.Point(348, 201);
-            this.btnSendData.Name = "btnSendData";
-            this.btnSendData.Size = new System.Drawing.Size(53, 23);
-            this.btnSendData.TabIndex = 9;
-            this.btnSendData.Text = "发送";
-            this.btnSendData.UseVisualStyleBackColor = true;
-            this.btnSendData.Click += new System.EventHandler(this.btnSendData_Click);
-            // 
-            // tbSendData
-            // 
-            this.tbSendData.Location = new System.Drawing.Point(20, 201);
-            this.tbSendData.Name = "tbSendData";
-            this.tbSendData.Size = new System.Drawing.Size(322, 21);
-            this.tbSendData.TabIndex = 8;
-            this.tbSendData.Text = " ";
-            // 
-            // tbChatContent
-            // 
-            this.tbChatContent.Location = new System.Drawing.Point(20, 45);
-            this.tbChatContent.Multiline = true;
-            this.tbChatContent.Name = "tbChatContent";
-            this.tbChatContent.Size = new System.Drawing.Size(381, 140);
-            this.tbChatContent.TabIndex = 7;
-            // 
-            // tbLog
-            // 
-            this.tbLog.Location = new System.Drawing.Point(53, 246);
-            this.tbLog.Multiline = true;
-            this.tbLog.Name = "tbLog";
-            this.tbLog.Size = new System.Drawing.Size(471, 89);
-            this.tbLog.TabIndex = 12;
-            // 
             // lbLog
             // 
             this.lbLog.AutoSize = true;
-            this.lbLog.Location = new System.Drawing.Point(18, 249);
+            this.lbLog.Location = new System.Drawing.Point(18, 323);
             this.lbLog.Name = "lbLog";
             this.lbLog.Size = new System.Drawing.Size(29, 12);
             this.lbLog.TabIndex = 13;
             this.lbLog.Text = "日志";
             // 
-            // Form1
+            // tbLog
+            // 
+            this.tbLog.Location = new System.Drawing.Point(20, 339);
+            this.tbLog.Multiline = true;
+            this.tbLog.Name = "tbLog";
+            this.tbLog.Size = new System.Drawing.Size(504, 103);
+            this.tbLog.TabIndex = 12;
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(18, 45);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(53, 12);
+            this.label1.TabIndex = 11;
+            this.label1.Text = "在线列表";
+            // 
+            // cbClientList
+            // 
+            this.cbClientList.FormattingEnabled = true;
+            this.cbClientList.Location = new System.Drawing.Point(89, 42);
+            this.cbClientList.Name = "cbClientList";
+            this.cbClientList.Size = new System.Drawing.Size(130, 20);
+            this.cbClientList.TabIndex = 10;
+            this.cbClientList.SelectedIndexChanged += new System.EventHandler(this.cbClientList_SelectedIndexChanged);
+            // 
+            // tbChatContent
+            // 
+            this.tbChatContent.Location = new System.Drawing.Point(20, 105);
+            this.tbChatContent.Multiline = true;
+            this.tbChatContent.Name = "tbChatContent";
+            this.tbChatContent.Size = new System.Drawing.Size(504, 206);
+            this.tbChatContent.TabIndex = 7;
+            // 
+            // IMServer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(609, 496);
+            this.ClientSize = new System.Drawing.Size(609, 588);
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.groupBox1);
-            this.Name = "Form1";
+            this.Name = "IMServer";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "IM服务器";
             this.Load += new System.EventHandler(this.Form1_Load);
@@ -237,8 +215,6 @@
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.Label lbChatRecord;
         private System.Windows.Forms.GroupBox groupBox2;
-        private System.Windows.Forms.Button btnSendData;
-        private System.Windows.Forms.TextBox tbSendData;
         private System.Windows.Forms.TextBox tbChatContent;
         private System.Windows.Forms.Button btnStopListen;
         private System.Windows.Forms.Label label1;
