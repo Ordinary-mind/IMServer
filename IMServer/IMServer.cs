@@ -119,7 +119,8 @@ namespace IMServer
                                 this.Invoke((EventHandler)delegate {
                                     cbClientList.Items.Add(accounts[0].NickName);
                                 });
-                                Send(state.TcpClient, Encoding.UTF8.GetBytes("@01@1"));
+                                string user = JsonConvert.SerializeObject(accounts[0]);
+                                Send(state.TcpClient, Encoding.UTF8.GetBytes("@01@"+ user));
                                                             }
                             else
                             {
@@ -145,12 +146,16 @@ namespace IMServer
                             break;
                         case "@04@":
                             ChatRecords record = JsonConvert.DeserializeObject<ChatRecords>(content);
-                            var res = clientList.Select(obj => obj.userId = record.ToId);
-                            if (res != null)
+                            if (record != null)
                             {
                                 string addRecord = "INSERT chatrecords VALUES(@RecordId,@FromId,@ToId,@SendTime,@Content)";
                                 DBHelper.AddData(addRecord, new MySqlParameter[] { new MySqlParameter("RecordId", record.RecordId), new MySqlParameter("FromId", record.FromId)
                                     , new MySqlParameter("ToId", record.ToId),new MySqlParameter("SendTime", record.SendTime),new MySqlParameter("Content", record.Content)});
+                            }
+                            var res = clientList.Where(u => u.userId == record.ToId).ToList();
+                            if (res.Count>0)
+                            {
+                                Send(res[0].TcpClient, Encoding.UTF8.GetBytes("@04@"+content));
                             }
                             break;
                         default:
