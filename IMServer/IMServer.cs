@@ -139,7 +139,7 @@ namespace IMServer
                             Send(state.TcpClient, Encoding.UTF8.GetBytes("@02@" + jsonOfFriends));
                             break;
                         case "@03@":
-                            string searchByNickName = "select * from useraccount where NickName like '%"+content+"%'";
+                            string searchByNickName = "select * from useraccount where NickName like '%"+content+"%'" ;
                             List<UserAccount> userAccounts = DBHelper.QueryToList<UserAccount>(searchByNickName, new MySqlParameter[] {});
                             string jsonOfPersons = JsonConvert.SerializeObject(userAccounts);
                             Send(state.TcpClient, Encoding.UTF8.GetBytes("@03@" + jsonOfPersons));
@@ -151,6 +151,11 @@ namespace IMServer
                                 string addRecord = "INSERT chatrecords VALUES(@RecordId,@FromId,@ToId,@SendTime,@Content)";
                                 DBHelper.AddData(addRecord, new MySqlParameter[] { new MySqlParameter("RecordId", record.RecordId), new MySqlParameter("FromId", record.FromId)
                                     , new MySqlParameter("ToId", record.ToId),new MySqlParameter("SendTime", record.SendTime),new MySqlParameter("Content", record.Content)});
+
+                                this.Invoke((EventHandler)delegate
+                                {
+                                    tbChatContent.AppendText("" + record.FromId + "→" + record.ToId + ":" + record.Content + "\n");
+                                });
                             }
                             var res = clientList.Where(u => u.userId == record.ToId).ToList();
                             if (res.Count>0)
