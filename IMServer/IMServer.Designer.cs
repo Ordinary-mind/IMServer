@@ -1,4 +1,6 @@
-﻿namespace IMServer
+﻿using System.Drawing;
+
+namespace IMServer
 {
     partial class IMServer
     {
@@ -154,9 +156,12 @@
             // 
             // tbLog
             // 
+            this.tbLog.BackColor = System.Drawing.Color.White;
             this.tbLog.Location = new System.Drawing.Point(20, 339);
             this.tbLog.Multiline = true;
             this.tbLog.Name = "tbLog";
+            this.tbLog.ReadOnly = true;
+            this.tbLog.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.tbLog.Size = new System.Drawing.Size(504, 103);
             this.tbLog.TabIndex = 12;
             // 
@@ -181,9 +186,12 @@
             // 
             // tbChatContent
             // 
+            this.tbChatContent.BackColor = System.Drawing.Color.White;
             this.tbChatContent.Location = new System.Drawing.Point(20, 105);
             this.tbChatContent.Multiline = true;
             this.tbChatContent.Name = "tbChatContent";
+            this.tbChatContent.ReadOnly = true;
+            this.tbChatContent.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.tbChatContent.Size = new System.Drawing.Size(504, 206);
             this.tbChatContent.TabIndex = 7;
             // 
@@ -195,7 +203,7 @@
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.groupBox1);
             this.Name = "IMServer";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "IM服务器";
             this.Load += new System.EventHandler(this.Form1_Load);
             this.groupBox1.ResumeLayout(false);

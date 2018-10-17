@@ -62,6 +62,8 @@ namespace IMServer
                 listener = new TcpListener(iPEndPoint);
                 tbLog.AppendText(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " 开始监听本地9000端口，等待连接！\n");
                 listener.Start();
+                btnStartLinsten.Enabled = false;
+                btnStopListen.Enabled = true;
                 listener.BeginAcceptTcpClient(new AsyncCallback(acceptClientCallback), listener);
             }catch(Exception ex)
             {
@@ -71,21 +73,28 @@ namespace IMServer
 
         private void acceptClientCallback(IAsyncResult ar)
         {
-            TcpListener lstn = (TcpListener)ar.AsyncState;
-            if (lstn != null)
+            try
             {
-                TcpClient client = lstn.EndAcceptTcpClient(ar);
-                this.Invoke((EventHandler)delegate{
-                    tbLog.AppendText(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss "+client.Client.RemoteEndPoint+" 加入连接！\n"));
-                });
-                byte[] buffer = new byte[client.ReceiveBufferSize];
-                TCPClientState state = new TCPClientState(client, buffer);
-                state.ClientAddr = client.Client.RemoteEndPoint.ToString();
-                state.clientName = "default";
-                clientList.Add(state);
-                NetworkStream stream = state.NetworkStream;
-                stream.BeginRead(state.Buffer, 0, state.Buffer.Length, HandleDataReceived, state);
-                listener.BeginAcceptTcpClient(new AsyncCallback(acceptClientCallback), ar.AsyncState);
+                TcpListener lstn = (TcpListener)ar.AsyncState;
+                if (lstn != null)
+                {
+                    TcpClient client = lstn.EndAcceptTcpClient(ar);
+                    this.Invoke((EventHandler)delegate {
+                        tbLog.AppendText(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss " + client.Client.RemoteEndPoint + " 加入连接！\n"));
+                        tbLog.ScrollToCaret();
+                    });
+                    byte[] buffer = new byte[client.ReceiveBufferSize];
+                    TCPClientState state = new TCPClientState(client, buffer);
+                    state.ClientAddr = client.Client.RemoteEndPoint.ToString();
+                    state.clientName = "default";
+                    clientList.Add(state);
+                    NetworkStream stream = state.NetworkStream;
+                    stream.BeginRead(state.Buffer, 0, state.Buffer.Length, HandleDataReceived, state);
+                    listener.BeginAcceptTcpClient(new AsyncCallback(acceptClientCallback), ar.AsyncState);
+                }
+            }catch(Exception e)
+            {
+                Console.WriteLine("IMServer acceptClientCallback\n" + e.Message);
             }
         }
 
@@ -217,14 +226,26 @@ namespace IMServer
 
         private void btnStopListen_Click(object sender, EventArgs e)
         {
-            if (this.listener != null)
+            try
             {
-                listener.Stop();
-                MessageBox.Show("已停止监听！");
-            }
-            else
+                if (listener!=null)
+                {
+                    listener.Stop();
+                    Invoke((EventHandler)delegate
+                    {
+                        tbLog.AppendText(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss ") + "停止监听9000端口！\n");
+                        tbLog.ScrollToCaret();
+                    });
+                    btnStopListen.Enabled = false;
+                    btnStartLinsten.Enabled = true;
+                }
+                else
+                {
+                    MessageBox.Show("服务未开启");
+                }
+            }catch(Exception ex)
             {
-                MessageBox.Show("服务未开启");
+                MessageBox.Show(ex.Message);
             }
         }
 
