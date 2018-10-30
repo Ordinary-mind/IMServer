@@ -1,4 +1,5 @@
-﻿using IMClient;
+﻿using Dapper;
+using IMClient;
 using IMServer.Entity;
 using MySql.Data.MySqlClient;
 using Newtonsoft.Json;
@@ -22,6 +23,7 @@ namespace IMServer
         List<TCPClientState> clientList = new List<TCPClientState>();
         public delegate void appendTextDelegate(String str);
         public int flag = 1;
+        string sqlConnect = "server=127.0.0.1;port=3306;user=root;password=lqn.091023; database=network;SslMode = none;";
 
         public IMServer()
         {
@@ -113,28 +115,16 @@ namespace IMServer
                     String str = Encoding.UTF8.GetString(buff);
                     string instruction = str.Substring(0, 4);
                     string content = str.Substring(4);
+                    //指令解读
+                    // 01 登录认证
+                    // 02 获取好友列表
+                    // 03 获取搜索信息
+                    // 04 转发消息
                     switch (instruction)
                     {
                         case "@01@":
-                            string[] addInfo = content.Split(',');
-                            string userName = addInfo[0];
-                            string password = addInfo[1];
-                            string sql = "SELECT * FROM useraccount WHERE UserName=@UserName AND Password=@Password";
-                            List<UserAccount> accounts = DBHelper.QueryToList<UserAccount>(sql, new MySqlParameter[] { new MySqlParameter("UserName",userName),new MySqlParameter("Password",password)});
-                            if (accounts.Count>0)
-                            {
-                                state.userId = accounts[0].UserId;
-                                state.clientName = accounts[0].NickName;
-                                this.Invoke((EventHandler)delegate {
-                                    cbClientList.Items.Add(accounts[0].NickName);
-                                });
-                                string user = JsonConvert.SerializeObject(accounts[0]);
-                                Send(state.TcpClient, Encoding.UTF8.GetBytes("@01@"+ user));
-                                                            }
-                            else
-                            {
-                                Send(state.TcpClient, Encoding.UTF8.GetBytes("@01@0"));
-                            }
+                            //登录认证
+                            LoginAuthentication(content, state);
                             break;
                         case "@2@":
                             this.Invoke(new MethodInvoker(() => {
@@ -142,35 +132,16 @@ namespace IMServer
                             }));
                             break;
                         case "@02@":
-                            string getFriends = "SELECT * FROM useraccount WHERE UserId in (SELECT f.FriendId FROM friend f LEFT JOIN useraccount u ON f.SelfId=u.UserId WHERE u.UserId=@UserId);";
-                            List<UserAccount> friends = DBHelper.QueryToList<UserAccount>(getFriends, new MySqlParameter[] { new MySqlParameter("UserId", state.userId) });
-                            string jsonOfFriends = JsonConvert.SerializeObject(friends);
-                            Send(state.TcpClient, Encoding.UTF8.GetBytes("@02@" + jsonOfFriends));
+                            //发送登录用户好友列表
+                            SendFriendList(content, state);
                             break;
                         case "@03@":
-                            string searchByNickName = "select * from useraccount where NickName like '%"+content+"%'" ;
-                            List<UserAccount> userAccounts = DBHelper.QueryToList<UserAccount>(searchByNickName, new MySqlParameter[] {});
-                            string jsonOfPersons = JsonConvert.SerializeObject(userAccounts);
-                            Send(state.TcpClient, Encoding.UTF8.GetBytes("@03@" + jsonOfPersons));
+                            //搜索用户
+                            SearchUser(content, state);
                             break;
                         case "@04@":
-                            ChatRecords record = JsonConvert.DeserializeObject<ChatRecords>(content);
-                            if (record != null)
-                            {
-                                string addRecord = "INSERT chatrecords VALUES(@RecordId,@FromId,@ToId,@SendTime,@Content)";
-                                DBHelper.AddData(addRecord, new MySqlParameter[] { new MySqlParameter("RecordId", record.RecordId), new MySqlParameter("FromId", record.FromId)
-                                    , new MySqlParameter("ToId", record.ToId),new MySqlParameter("SendTime", record.SendTime),new MySqlParameter("Content", record.Content)});
-
-                                this.Invoke((EventHandler)delegate
-                                {
-                                    tbChatContent.AppendText("" + record.FromId + "→" + record.ToId + ":" + record.Content + "\n");
-                                });
-                            }
-                            var res = clientList.Where(u => u.userId == record.ToId).ToList();
-                            if (res.Count>0)
-                            {
-                                Send(res[0].TcpClient, Encoding.UTF8.GetBytes("@04@"+content));
-                            }
+                            //转发消息
+                            TransmitMessage(content, state);
                             break;
                         default:
                             break;
@@ -251,6 +222,90 @@ namespace IMServer
 
         private void cbClientList_SelectedIndexChanged(object sender, EventArgs e)
         {
+        }
+
+        private void LoginAuthentication(string content, TCPClientState state)
+        {
+            string[] addInfo = content.Split(',');
+            string userName = addInfo[0];
+            string password = addInfo[1];
+            List<UserAccount> accounts = new List<UserAccount>();
+            using (IDbConnection db = new MySqlConnection(sqlConnect))
+            {
+                string sql = $"SELECT * FROM useraccount WHERE UserName='{userName}' AND Password='{password}'";
+                accounts = db.Query<UserAccount>(sql).ToList();
+            }
+            if (accounts.Count > 0)
+            {
+                state.userId = accounts[0].UserId;
+                state.clientName = accounts[0].NickName;
+                this.Invoke((EventHandler)delegate {
+                    cbClientList.Items.Add(accounts[0].NickName);
+                });
+                string user = JsonConvert.SerializeObject(accounts[0]);
+                Send(state.TcpClient, Encoding.UTF8.GetBytes("@01@" + user));
+            }
+            else
+            {
+                Send(state.TcpClient, Encoding.UTF8.GetBytes("@01@[]"));
+            }
+        }
+
+        private void SendFriendList(string content, TCPClientState state)
+        {
+            List<UserAccount> friends = new List<UserAccount>();
+            using (IDbConnection db = new MySqlConnection(sqlConnect))
+            {
+                string sqlQuery = $@"SELECT * FROM useraccount WHERE UserId in 
+                                              (
+                                                SELECT f.FriendId FROM friend f 
+                                                LEFT JOIN useraccount u ON f.SelfId=u.UserId 
+                                                WHERE u.UserId={state.userId}
+                                              );";
+                friends = db.Query<UserAccount>(sqlQuery).ToList();
+            }
+            string jsonOfFriends = JsonConvert.SerializeObject(friends);
+            Send(state.TcpClient, Encoding.UTF8.GetBytes("@02@" + jsonOfFriends));
+        }
+
+        private void SearchUser(string content, TCPClientState state)
+        {
+            List<UserAccount> userAccounts = new List<UserAccount>();
+            using (IDbConnection db = new MySqlConnection(sqlConnect))
+            {
+                string sql = $"select * from useraccount where NickName like '%{content}%';";
+                userAccounts = db.Query<UserAccount>(sql).ToList();
+            }
+            string jsonOfPersons = JsonConvert.SerializeObject(userAccounts);
+            Send(state.TcpClient, Encoding.UTF8.GetBytes("@03@" + jsonOfPersons));
+        }
+
+        private void TransmitMessage(string content, TCPClientState state)
+        {
+            try
+            {
+                ChatRecords record = JsonConvert.DeserializeObject<ChatRecords>(content);
+                using (IDbConnection db = new MySqlConnection(sqlConnect))
+                {
+                    if (record != null)
+                    {
+                        string sql = $"INSERT chatrecords VALUES('{record.RecordId}',{record.FromId},{record.ToId},'{record.SendTime}','{record.Content}')";
+                        db.Execute(sql);
+                        this.Invoke((EventHandler)delegate
+                        {
+                            tbChatContent.AppendText("" + record.FromId + "→" + record.ToId + ":" + record.Content + "\n");
+                        });
+                    }
+                }
+                var res = clientList.Where(u => u.userId == record.ToId).FirstOrDefault();
+                if (res != null)
+                {
+                    Send(res.TcpClient, Encoding.UTF8.GetBytes("@04@" + content));
+                }
+            }catch(Exception e)
+            {
+
+            }
         }
     }
 
